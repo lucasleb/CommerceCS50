@@ -3,12 +3,17 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from .models import User, Listing, Comment, Bid
+from django.forms import ModelForm
 
-from .models import User
+
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    print(Listing.objects.all())
+    return render(request, "auctions/index.html", {
+        "listings": Listing.objects.all()
+    })
 
 
 def login_view(request):
@@ -61,3 +66,35 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+class ListingForm(ModelForm):
+    class Meta:
+        model = Listing
+        fields = ['title', 'description', 'starting_price', 'image']
+
+def create_listing(request):
+    # For a post request, add a new flight
+    if request.method == "POST": 
+        # add the dictionary during initialization
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            Listing = form.save(commit=False)
+            Listing.seller = request.user
+            Listing.save()
+            return HttpResponseRedirect(reverse('auctions:index'))  
+        else:
+            print("form not valid")    
+            return HttpResponseRedirect(reverse('auctions:create_listing'))  
+
+
+    else: 
+        return render(request, "auctions/create_listing.html", {
+        "form": ListingForm(),
+    })
+
+       
+
+
+
+
