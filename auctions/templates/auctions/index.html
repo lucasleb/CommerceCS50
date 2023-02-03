@@ -1,9 +1,40 @@
 {% extends "auctions/layout.html" %}
 
+
 {% block body %}
     <h2>Active Listings</h2>
 
     {% for listing in listings  %}
-    <p>{{listing.title}}</p>
+    {% if listing.is_active  %}
+
+    <div class="active-listing">
+
+        <div class="listing-image">
+            {% if not listing.image %}
+            <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+            {% else %}
+            <img src={{listing.image}} alt="" srcset="">
+            {% endif %}
+        </div>
+        
+        <div class="listing-text">
+            <h2><a href="{% url 'auctions:listing' listing.id %}">{{listing.title|truncatechars:50}}</a></h2>
+            <h4>{{ listing.description|truncatechars:50 }}</h4>
+
+            {% if listing.highest_bid %}
+            <p>current price: ${{listing.highest_bid}}</p>
+            {% else %}
+            <p>starting price: ${{listing.starting_price}}</p>
+            {% endif %}
+            
+            <p>Seller: {{listing.seller|truncatechars:50}}</p>
+            <p>created on: {{listing.created_at}}</p>
+            <p>viewed {{listing.number_of_views}} times</p>
+        </div>
+        
+    </div>
+    {% endif %}
     {% endfor %}
 {% endblock %}
+
+

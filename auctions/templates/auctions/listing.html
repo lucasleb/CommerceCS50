@@ -1,0 +1,55 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing</h2>
+
+
+    <div class="active-listing">
+
+        
+
+        <div class="listing-image">
+            {% if not listing.image %}
+            <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+            {% else %}
+            <img src={{listing.image}} alt="" srcset="">
+            {% endif %}
+        </div>
+        
+        <div class="listing-text">
+            <h2>{{listing.title}}</h2>
+            <h4>{{ listing.description|truncatechars:50 }}</h4>
+
+            {% comment %} CURRENT PRICE {% endcomment %}
+            {% if not current_price %}
+            <p>current price: ${{current_price}}</p>
+            {% else %}
+            <p>starting price: ${{listing.starting_price}} </p>
+            {% endif %}
+
+            <p>Seller: {{listing.seller|truncatechars:50}}</p>
+            <p>created on: {{listing.created_at}}</p>
+            <p>viewed {{listing.number_of_views}} times</p>
+
+            {% comment %} WATCHLIST BUTTON {% endcomment %}
+            {% if user.is_authenticated %}
+            <form action="{% url 'auctions:watchlist'%}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value={{listing.id}}>
+                {% if watchlist == True %}
+                <button type="submit" name="remove" value="1">remove from Watchlist</button>
+                {% else %}
+                <button type="submit" name="remove" value="">Add to Watchlist</button>            
+                {% endif %}
+            </form>
+            {% endif %}
+
+          
+
+        </div>
+        
+    </div>
+    
+{% endblock %}
+
+

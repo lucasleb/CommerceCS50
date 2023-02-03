@@ -5,14 +5,17 @@ from django.shortcuts import render
 from django.urls import reverse
 from .models import User, Listing, Comment, Bid
 from django.forms import ModelForm
-
-
+from django.db.models import Max, Subquery, OuterRef
 
 
 def index(request):
-    print(Listing.objects.all())
+
+    highest_bids = Bid.objects.filter(listing=OuterRef('pk')).order_by('-price')
+    listings_with_highest_bids = Listing.objects.annotate(
+        highest_bid=Subquery(highest_bids[:1].values('price')))
+
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all()
+        "listings": listings_with_highest_bids
     })
 
 
@@ -93,8 +96,47 @@ def create_listing(request):
         "form": ListingForm(),
     })
 
-       
+def listing(request, id):
+    highest_bid = Bid.objects.filter(listing=id).aggregate(Max('price'))
+    users_watching = Listing.objects.get(pk=id).watchlist.all()
+    print(users_watching)
+    print(request.user)
+    if users_watching == None:
+        watchlist = False    
+    else:
+        if request.user in users_watching:
+            watchlist = True
+        else:           
+            watchlist = False    
+    print(watchlist) 
+    return render(request, "auctions/listing.html", {
+        "listing": Listing.objects.get(pk=id),
+        "current_price": highest_bid,
+        "watchlist": watchlist
+    })
+           
+def watchlist(request):
+    if request.method == "POST": 
+        listing_id = request.POST.get("listing_id")
+        listing = Listing.objects.get(id=listing_id)
+        user = request.user
+        print(request.POST.get("remove"))
+        print(request.POST.get("remove"))
+        if request.POST.get("remove"):
+            listing.watchlist.remove(user)
+            print(listing)
+            print("user removed")
 
+        else:
+            listing.watchlist.add(user)  
+            print("user added")
+  
+        listing.save()
+        return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))  
+
+    else: 
+        pass
+    
 
 
 
