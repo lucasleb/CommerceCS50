@@ -233,7 +233,15 @@ def comment (request):
         
 
 def index_categories(request):
-    categories = dict.fromkeys((Listing.objects.values_list('category')))
+    categories = dict.fromkeys((Listing.objects.values_list('category', flat=True)))
+    print(categories)
     return render(request, "auctions/index_categories.html", {
         "categories": categories,
+    })
+
+def category_search(request, category):
+    listings = Listing.objects.filter(category=category).order_by('created_at')
+    return render(request, "auctions/category_search.html", {
+        "category": category,
+        "listings": listings,
     })

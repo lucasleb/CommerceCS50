@@ -4,10 +4,9 @@
     <h2>Categories</h2>
     {% for category in categories  %}
     <ul>
-        {% if category|join:", " == "" %}
-        <li><a href="">without category</a></li>
+        {% if category == "" %}
         {% else %}
-        <li><a href="">{{category|join:", "}}</a></li>
+        <li><a href="{% url 'auctions:category_search' category %}">{{category}}</a></li>
         {% endif %}
         
     </ul>

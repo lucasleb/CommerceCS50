@@ -5,9 +5,6 @@
 
 
     <div class="active-listing">
-
-        
-
         <div class="listing-image">
             {% if not listing.image %}
             <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
@@ -36,8 +33,11 @@
 
 
 
-
-            <p>category: {{listing.category}}</p>
+            {% if listing.category %}
+            <p>category: <a href="{% url 'auctions:category_search' listing.category %}">{{listing.category}}</a></p>
+            {% else %}
+            <p>uncategorized </p>
+            {% endif %}
 
             <p>created on: {{listing.created_at}}</p>
 
