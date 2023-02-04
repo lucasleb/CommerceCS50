@@ -17,6 +17,8 @@ class Listing(models.Model):
     number_of_views = models.PositiveIntegerField(default=0)
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listing_user')
     watchlist = models.ManyToManyField(User, related_name='listing_watcher', blank=True )
+    category = models.CharField(max_length=100, blank=True)
+
 
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)

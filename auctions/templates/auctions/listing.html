@@ -37,8 +37,10 @@
 
 
 
+            <p>category: {{listing.category}}</p>
 
             <p>created on: {{listing.created_at}}</p>
+
             <p>viewed {{listing.number_of_views}} times</p>
 
             {% if user.is_authenticated %}
@@ -56,8 +58,6 @@
 
             {% else %}
 
-            
-
             <form action="{% url 'auctions:bid'%}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="listing_id" value={{listing.id}}>
@@ -67,20 +67,32 @@
 
             {% if bid_message %}{{bid_message}}{% endif %}
 
-
-
-            {% comment %} WATCHLIST BUTTON {% endcomment %}
             <form action="{% url 'auctions:watchlist'%}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="listing_id" value={{listing.id}}>
-                {% if watchlist == True %}
+                {% if added_to_watchlist == True %}
                 <button type="submit" name="remove" value="1">remove from Watchlist</button>
                 {% else %}
                 <button type="submit" name="remove" value="">Add to Watchlist</button>            
                 {% endif %}
             </form>
+
+            <form action="{% url 'auctions:comment'%}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value={{listing.id}}>
+                {{new_comment}}
+                <button type="submit">submit</button>
+            </form>
+
+
             {% endif %}
             {% endif %}
+            <h2>Comments:</h2>
+            {% for comment in comments %}
+            <p>{{comment.author}} ({{comment.created_at}}):</p>
+            <p>{{comment.text}}</p>
+
+            {% endfor %}
 
 
 

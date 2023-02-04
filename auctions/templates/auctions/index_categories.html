@@ -1,0 +1,19 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Categories</h2>
+    {% for category in categories  %}
+    <ul>
+        {% if category|join:", " == "" %}
+        <li><a href="">without category</a></li>
+        {% else %}
+        <li><a href="">{{category|join:", "}}</a></li>
+        {% endif %}
+        
+    </ul>
+    {% empty %}
+    <p>There is no category yet</p>
+    {% endfor %}
+{% endblock %}
+
+

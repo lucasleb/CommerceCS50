@@ -26,7 +26,12 @@ class BidForm(ModelForm):
 class ListingForm(ModelForm):
     class Meta:
         model = Listing
-        fields = ['title', 'description', 'starting_price', 'image']
+        fields = ['title', 'description', 'starting_price', 'image', 'category']
+
+class CommentForm(ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
 
 
 
@@ -119,34 +124,30 @@ def create_listing(request):
 
 def listing(request, id):
     listing = get_object_or_404(Listing, id=id)
+    highest_bid = Bid.objects.filter(listing=id).aggregate(Max('price'))['price__max']
+    users_watching = Listing.objects.get(pk=id).watchlist.all()
+    highest_bidder = get_highest_bidder(id)    
+    added_to_watchlist = request.user in users_watching
+    comments = Comment.objects.filter(listing=id).all()
+
     if 'has_viewed_listing_{}'.format(id) not in request.session:
         request.session['has_viewed_listing_{}'.format(id)] = True
         listing.number_of_views += 1
         listing.save()
+
     bid_message = request.session.get('bid_message', '')
     request.session['bid_message'] = ''
-    highest_bid = Bid.objects.filter(listing=id).aggregate(Max('price'))['price__max']
-    users_watching = Listing.objects.get(pk=id).watchlist.all()
-    
-    if request.user in users_watching:
-        watchlist = True    
-    else:        
-        watchlist = False
-
-    highest_bidder = get_highest_bidder(id)    
-
-    
-
-
 
 
     return render(request, "auctions/listing.html", {
         "listing": Listing.objects.get(pk=id),
         "current_price": highest_bid,
-        "watchlist": watchlist,
+        "added_to_watchlist": added_to_watchlist,
         "bid": BidForm(),
         "bid_message": bid_message,
-        "highest_bidder": highest_bidder
+        "highest_bidder": highest_bidder,
+        "new_comment": CommentForm(),
+        "comments": comments,
     })
            
 def watchlist(request):
@@ -162,7 +163,10 @@ def watchlist(request):
         return HttpResponseRedirect(reverse('auctions:listing', args=(listing_id, )))  
 
     else: 
-        pass
+        watchlist = Listing.objects.filter(watchlist=request.user)
+        return render(request, "auctions/watchlist.html", {
+        "watchlist": watchlist,
+    })
     
 
 
@@ -212,5 +216,24 @@ def close_auction (request):
         return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
 
 
+def comment (request):
+    if request.method == "POST":
+        listing_id = request.POST.get("listing_id")
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            newComment = form.save(commit=False)
+            newComment.author = request.user
+            newComment.listing = Listing.objects.get(id=listing_id)
+            newComment.save()
+            return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
+        else: 
+            pass
+    else: 
+        pass    
+        
 
-
+def index_categories(request):
+    categories = dict.fromkeys((Listing.objects.values_list('category')))
+    return render(request, "auctions/index_categories.html", {
+        "categories": categories,
+    })
