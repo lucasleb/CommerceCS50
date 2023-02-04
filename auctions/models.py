@@ -32,10 +32,5 @@ class Bid(models.Model):
     bidder = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
 
-    def clean(self):
-        current_highest_bid = Bid.objects.filter(listing=self.listing).order_by('-price').first()
-        if current_highest_bid and current_highest_bid >= self.listing.starting_price:
-            raise ValidationError(f'New bid must be higher or equal to the starting price of ${self.listing.starting_price}') 
-        if current_highest_bid and current_highest_bid.price > self.price:
-            raise ValidationError(f'New bid must be higher than the current highest bid of ${current_highest_bid.price}')
     
+        

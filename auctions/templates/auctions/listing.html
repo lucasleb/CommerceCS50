@@ -21,18 +21,55 @@
             <h4>{{ listing.description|truncatechars:50 }}</h4>
 
             {% comment %} CURRENT PRICE {% endcomment %}
-            {% if not current_price %}
-            <p>current price: ${{current_price}}</p>
+            {% if current_price %}
+                <p>current price: ${{current_price}}</p>
             {% else %}
-            <p>starting price: ${{listing.starting_price}} </p>
+                <p>starting price: ${{listing.starting_price}} </p>
             {% endif %}
 
             <p>Seller: {{listing.seller|truncatechars:50}}</p>
+            {% if listing.is_active %}
+            <p>Listing active. Highest bidder: {{highest_bidder}} </p>
+            {% else %}
+            <p>Listing closed. {% if highest_bidder %}Winner: {{highest_bidder}} {% else %} No winner {% endif %} </p>
+            {% endif %}
+
+
+
+
+
             <p>created on: {{listing.created_at}}</p>
             <p>viewed {{listing.number_of_views}} times</p>
 
-            {% comment %} WATCHLIST BUTTON {% endcomment %}
             {% if user.is_authenticated %}
+            {% if user == listing.seller %}
+
+
+            <form action="{% url 'auctions:close_auction'%}" method="post">
+                {% csrf_token %}
+                <button type="submit">Close Auction</button>
+                <input type="hidden" name="listing_id" value={{listing.id}}>
+            </form>
+
+
+
+
+            {% else %}
+
+            
+
+            <form action="{% url 'auctions:bid'%}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value={{listing.id}}>
+                {{ bid }}
+                <button type="submit">BID</button>
+            </form>
+
+            {% if bid_message %}{{bid_message}}{% endif %}
+
+
+
+            {% comment %} WATCHLIST BUTTON {% endcomment %}
             <form action="{% url 'auctions:watchlist'%}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="listing_id" value={{listing.id}}>
@@ -43,6 +80,9 @@
                 {% endif %}
             </form>
             {% endif %}
+            {% endif %}
+
+
 
           
 
