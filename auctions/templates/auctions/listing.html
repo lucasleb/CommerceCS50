@@ -1,104 +1,152 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Listing</h2>
 
 
-    <div class="active-listing">
-        <div class="listing-image">
-            {% if not listing.image %}
-            <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+    <div class="listing-view">
+            <div class="title">{{listing.title}}</div>
+            <div class="subtitle"> <div class="viewed">viewed: {{listing.number_of_views}} times</div>
+            <div class="created">created on: {{listing.created_at|date:'Y-m-d H:i'}}</div></div>
+
+            <div class="watchlist">
+                <form action="{% url 'auctions:watchlist'%}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="listing_id" value={{listing.id}}>
+                    {% if added_to_watchlist == True %}
+                    <button type="submit" name="remove" value="1" class="button-8" role="button">Remove from Watchlist</button>
+                    {% else %}
+                    <button type="submit" name="remove" value="" class="button-8 active" role="button">Add to Watchlist</button>            
+                    {% endif %}
+                </form>
+            </div>
+           
+            <div class="image-listing">
+                {% if not listing.image %}
+                <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+                {% else %}
+                <img src={{listing.image}} alt="" srcset="">
+                {% endif %}
+            </div>
+            
+            <div class="price-bid">
+                    <div class"price-status">
+                        {% if current_price %}
+                        Current price:
+                        {% else %}
+                        Starting price:
+                        {% endif %}
+                    </div>
+                    <div class"price-price">
+                        {% if current_price %}
+                        ${{current_price}}
+                        {% else %}
+                        ${{listing.starting_price}}
+                        {% endif %}
+                    </div>
+                    <h6>Seller: {{listing.seller|truncatechars:50}}</h6>
+                    {% comment %} BID SECTION {% endcomment %}
+
+                    {% if listing.is_active %}
+                    <p>This Auction is open</p> 
+
+                        {% if user.is_authenticated %}
+
+                            {% if user == listing.seller %}
+                                
+                                <form action="{% url 'auctions:close_auction'%}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="button-8" role="button">Close Auction</button>
+                                    <input type="hidden" name="listing_id" value={{listing.id}}>
+                                </form>
+                                
+                            {% else %}
+                            {% if bid_message %}{{bid_message}}{% endif %} <br>
+                            Make a new Bid:
+                                <form action="{% url 'auctions:bid'%}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="listing_id" value={{listing.id}}>
+                                    {{ bid.price }}
+                                    
+                                    <button type="submit" class="button-8" role="button">NEW BID</button>
+                                </form>
+
+                                
+
+                            {% endif %}
+                        {% else %}    
+                        <a href="{% url 'auctions:login' %}">Log In</a> to bid
+                        {% endif %}
+
+
+                    {% else %}
+                        <h5>This Auction is closed<br>
+                        {% if listing.winner %}
+                            {% if user == listing.winner %}
+                            <span style="color:red"><b>You won the auction !</b> </span>
+                            {% else %}
+                            The winner is {{listing.winner}}
+                            {% endif %}
+                        {% else %}
+                        There was no bidder</h5> 
+                        {% endif %}
+                    {% endif %}
+                    
+                    
+                    
+            </div>
+            <br>
+            
+
+            {% if listing.category %}
+            <b>category: <a styles={display=inline}"display" href="{% url 'auctions:category_search' listing.category %}">{{listing.category}}</a></b>
             {% else %}
-            <img src={{listing.image}} alt="" srcset="">
+            uncategorized
             {% endif %}
-        </div>
-        
-        <div class="listing-text">
-            <h2>{{listing.title}}</h2>
-            <h4>{{ listing.description|truncatechars:50 }}</h4>
+            <br>
+            <br>
+            
 
-            {% comment %} CURRENT PRICE {% endcomment %}
-            {% if current_price %}
-                <p>current price: ${{current_price}}</p>
-            {% else %}
-                <p>starting price: ${{listing.starting_price}} </p>
-            {% endif %}
+            <b>Description:</b> <br>
+            {{ listing.description}}
+            
 
-            <p>Seller: {{listing.seller|truncatechars:50}}</p>
-            {% if listing.is_active %}
+            {% comment %} {% if listing.is_active %}
             <p>Listing active. Highest bidder: {{highest_bidder}} </p>
             {% else %}
             <p>Listing closed. {% if highest_bidder %}Winner: {{highest_bidder}} {% else %} No winner {% endif %} </p>
-            {% endif %}
+            {% endif %} {% endcomment %}
 
 
 
-            {% if listing.category %}
-            <p>category: <a href="{% url 'auctions:category_search' listing.category %}">{{listing.category}}</a></p>
-            {% else %}
-            <p>uncategorized </p>
-            {% endif %}
-
-            <p>created on: {{listing.created_at}}</p>
-
-            <p>viewed {{listing.number_of_views}} times</p>
-
-            {% if user.is_authenticated %}
-            {% if user == listing.seller %}
+            
 
 
-            <form action="{% url 'auctions:close_auction'%}" method="post">
-                {% csrf_token %}
-                <button type="submit">Close Auction</button>
-                <input type="hidden" name="listing_id" value={{listing.id}}>
-            </form>
+            
+            
 
-
-
-
-            {% else %}
-
-            <form action="{% url 'auctions:bid'%}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="listing_id" value={{listing.id}}>
-                {{ bid }}
-                <button type="submit">BID</button>
-            </form>
-
-            {% if bid_message %}{{bid_message}}{% endif %}
-
-            <form action="{% url 'auctions:watchlist'%}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="listing_id" value={{listing.id}}>
-                {% if added_to_watchlist == True %}
-                <button type="submit" name="remove" value="1">remove from Watchlist</button>
-                {% else %}
-                <button type="submit" name="remove" value="">Add to Watchlist</button>            
+            {% comment %} COMMENT SECTION {% endcomment %}
+            <div class="comment_section">
+                <h2>Comments:</h2>
+                {% if user.is_authenticated %}
+                    {% if user != listing.seller  %}
+                        <form action="{% url 'auctions:comment'%}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="listing_id" value={{listing.id}}>
+                            {{new_comment.text}} <br>
+                            <button type="submit" class="button-8" role="button">Add your comment</button>
+                        </form>
+                    {% endif %}
                 {% endif %}
-            </form>
-
-            <form action="{% url 'auctions:comment'%}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="listing_id" value={{listing.id}}>
-                {{new_comment}}
-                <button type="submit">submit</button>
-            </form>
-
-
-            {% endif %}
-            {% endif %}
-            <h2>Comments:</h2>
-            {% for comment in comments %}
-            <p>{{comment.author}} ({{comment.created_at}}):</p>
-            <p>{{comment.text}}</p>
-
-            {% endfor %}
-
-
-
-          
-
-        </div>
+    
+                
+                {% for comment in comments %}
+                    <p><b>{{comment.author}}</b> {{comment.created_at|date:'Y-m-d H:i'}}:</p>
+                    <p class="text-comment">{{comment.text}}</p>
+                {% empty %} 
+                <p>No comments yet</p> 
+                {% endfor %} 
+            </div>
+                   
         
     </div>
     

@@ -3,13 +3,41 @@
 
 {% block body %}
     <h2>Watchlist</h2>
-    {% for listing in watchlist  %}
-    <ul>
-        <li><a href="{% url 'auctions:listing' listing.id %}">{{listing.title}}</a></li>
-    </ul>
-    {% empty %}
-    <p>You don't have any listings in your watchlist yet</p>
+    
+
+    <div class="flexbox-listings">
+        {% for listing in watchlist  %}
+    
+        <div class="active-listing">
+    
+            <div class="listing-image">
+                {% if not listing.image %}
+                <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+                {% else %}
+                <img src={{listing.image}} alt="" srcset="">
+                {% endif %}
+            </div>
+            
+            <div class="listing-text">
+                <a href="{% url 'auctions:listing' listing.id %}">{{listing.title|truncatechars:13}}</a>
+                <br>{{ listing.description|truncatechars:22 }}</br>
+                {% if listing.is_active %}
+                {% else %}
+                <span style="color:red"><b>CLOSED</b> </span>
+                {% if user == listing.winner %} YOU WON !{% endif %}
+                {% endif %}
+                {% if listing.highest_bid %}
+                <siv class="price">$ {{listing.highest_bid}}</siv>
+                {% else %}
+                <div class="price">$ {{listing.starting_price}}</div>
+                {% endif %}
+            </div>
+            
+        </div>
+        
     {% endfor %}
+    </div>
+
 {% endblock %}
 
 

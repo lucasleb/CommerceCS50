@@ -10,7 +10,7 @@ class Listing(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     starting_price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.URLField(max_length=2000, blank=True)
+    image = models.URLField(max_length=20000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     winner = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='listing_winner')

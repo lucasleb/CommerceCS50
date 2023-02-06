@@ -2,40 +2,41 @@
 
 
 {% block body %}
-    <h2>Active Listings</h2>
+    <h2 class="page-title">Active Listings</h2>
 
-    {% for listing in listings  %}
-    {% if listing.is_active  %}
 
-    <div class="active-listing">
-
-        <div class="listing-image">
-            {% if not listing.image %}
-            <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
-            {% else %}
-            <img src={{listing.image}} alt="" srcset="">
-            {% endif %}
-        </div>
-        
-        <div class="listing-text">
-            <h2><a href="{% url 'auctions:listing' listing.id %}">{{listing.title|truncatechars:50}}</a></h2>
-            <h4>{{ listing.description|truncatechars:50 }}</h4>
-
-            {% if listing.highest_bid %}
-            <p>current price: ${{listing.highest_bid}}</p>
-            {% else %}
-            <p>starting price: ${{listing.starting_price}}</p>
-            {% endif %}
+    <div class="flexbox-listings">
+        {% for listing in listings  %}
+        {% if listing.is_active  %}
+    
+        <div class="active-listing">
+    
+            <div class="listing-image">
+                <a href="{% url 'auctions:listing' listing.id %}">
+                {% if not listing.image %}                
+                    <img src="https://t3.ftcdn.net/jpg/04/62/93/66/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp.jpg" alt="" srcset="">
+                {% else %}
+                <img src={{listing.image}} alt="" srcset="">
+                {% endif %}
+                </a>
+            </div>
             
-            <p>Seller: {{listing.seller|truncatechars:50}}</p>
-            <p>category: {{listing.category}}</p>
-            <p>created on: {{listing.created_at}}</p>
-            <p>viewed {{listing.number_of_views}} times</p>
+            <div class="listing-text">
+                <a href="{% url 'auctions:listing' listing.id %}">{{listing.title|truncatechars:13}}</a>
+                <br>{{ listing.description|truncatechars:45 }}</br>
+                {% if listing.highest_bid %}
+                <siv class="price">$ {{listing.highest_bid}}</siv>
+                {% else %}
+                <div class="price">$ {{listing.starting_price}}</div>
+                {% endif %}
+            </div>
+            
         </div>
-        
-    </div>
-    {% endif %}
+        {% endif %}
     {% endfor %}
+    </div>
+    
+    
 {% endblock %}
 
 

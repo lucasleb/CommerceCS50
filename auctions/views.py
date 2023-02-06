@@ -8,6 +8,8 @@ from django.forms import ModelForm
 from django.db.models import Max, Subquery, OuterRef
 from django.core.exceptions import ValidationError
 import decimal
+from django.contrib.auth.decorators import login_required
+
 
 
 
@@ -101,7 +103,7 @@ def register(request):
 
 
 
-
+@login_required
 def create_listing(request):
     # For a post request, add a new flight
     if request.method == "POST": 
@@ -149,7 +151,8 @@ def listing(request, id):
         "new_comment": CommentForm(),
         "comments": comments,
     })
-           
+
+@login_required   
 def watchlist(request):
     if request.method == "POST": 
         listing_id = request.POST.get("listing_id")
@@ -163,14 +166,15 @@ def watchlist(request):
         return HttpResponseRedirect(reverse('auctions:listing', args=(listing_id, )))  
 
     else: 
-        watchlist = Listing.objects.filter(watchlist=request.user)
+        highest_bids = Bid.objects.filter(listing=OuterRef('pk')).order_by('-price')
+        watchlist = Listing.objects.filter(watchlist=request.user).annotate(highest_bid=Subquery(highest_bids[:1].values('price')))
         return render(request, "auctions/watchlist.html", {
         "watchlist": watchlist,
     })
     
 
 
-
+@login_required   
 def bid(request):
     if request.method == "POST":
         listing_id = request.POST.get("listing_id")
@@ -189,33 +193,45 @@ def bid(request):
             if highest_bid:  
                 if current_bid > highest_bid:
                     newBid.save()
-                    request.session['bid_message'] = "Your bid had been successfull"
+                    request.session['bid_message'] = "Your bid was successfully registered!"
                     return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
                 else:
-                    request.session['bid_message'] = "Your bid must be higher than the current highest bid."
+                    request.session['bid_message'] = "Error: Your bid must be higher than the current highest bid."
                     return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
             else: 
                 if current_bid > starting_price:
                     newBid.save()
-                    request.session['bid_message'] = "Your bid had been successfull"
+                    request.session['bid_message'] = "Your bid was successfully registered!"
                     return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
                 else:
-                    request.session['bid_message'] = "Your bid must be higher than the starting price"
+                    request.session['bid_message'] = "Error: Your bid must be higher than the starting price"
                     return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
         else:
             pass
     else: 
         pass
 
+@login_required   
 def close_auction (request):
     if request.method == "POST": 
         listing_id = request.POST.get("listing_id")
         listing = Listing.objects.get(id=listing_id)
         listing.is_active = False
+
+        highest_bid = Bid.objects.filter(listing=listing_id).order_by('-price').first()
+        print (highest_bid)
+
+        if highest_bid:
+            winner = highest_bid.bidder
+            print (winner)
+            listing.winner = winner
+
+        
+
         listing.save()
         return HttpResponseRedirect(reverse('auctions:listing', args=({listing_id})))
 
-
+@login_required  
 def comment (request):
     if request.method == "POST":
         listing_id = request.POST.get("listing_id")
